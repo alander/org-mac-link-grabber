@@ -1,6 +1,3 @@
-;-*-org-*-
-#+TITLE: org-mac-link-grabber
-
 * Overview
   This code will allow you to grab link to from open mac applications
   and insert them as hyperlinks at point in an org-mode document. 
