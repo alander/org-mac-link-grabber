@@ -1,3 +1,4 @@
+
 ;;; org-mac-link-grabber.el --- Grab links and url from various mac
 ;;; application and insert them as links into org-mode documents
 ;;
@@ -14,9 +15,9 @@
 ;; This code is heavily based on org-mac-message.el written by John
 ;; Weigley and Christopher Suckling.
 ;;
-;; Detailed comments for each application are inlined with the code.
-;; Here is a brief overview of how the code interacts with each
-;; application:
+;; Detailed comments for each application interface are inlined with
+;; the code. Here is a brief overview of how the code interacts with
+;; each application:
 ;;
 ;; Firefox.app - Grab the url of the frontmost tab in the topmost window
 ;; Together.app - Grab links to the selected items in the library list
@@ -40,13 +41,14 @@
 
 ;; Define key bindings. C-g is the prefix key to grab links.
 
-(define-key org-mode-map (kbd "C-c g") 
-  (define-prefix-command 'org-mac-grab-link-keymap nil "Grab links from [m]ail.app [f]irefox [t]ogether"))
+(progn
+  (define-key org-mode-map (kbd "C-c g") 
+	(define-prefix-command 'org-mac-grab-link-keymap nil "Grab links from [m]ail.app [f]irefox [t]ogether"))
 
-(define-key org-mac-grab-link-keymap "m" 'org-mac-together-item-get-selected)
-(define-key org-mac-grab-link-keymap "f" 'org-mac-firefox-insert-frontmost-url)
-(define-key org-mac-grab-link-keymap "t" 'org-mac-together-item-get-selected)
-(define-key org-mac-grab-link-keymap (kbd "C-g") 'keyboard-quit)
+  (define-key org-mac-grab-link-keymap "m" 'org-mac-message-insert-selected)
+  (define-key org-mac-grab-link-keymap "f" 'org-mac-firefox-insert-frontmost-url)
+  (define-key org-mac-grab-link-keymap "t" 'org-mac-together-item-get-selected)
+  (define-key org-mac-grab-link-keymap (kbd "C-g") 'keyboard-quit))
 
 
 
@@ -153,8 +155,6 @@
 (defun org-mac-together-item-insert-selected ()
   (interactive)
   (insert (org-mac-together-item-get-selected)))
-
-
 
 
 
