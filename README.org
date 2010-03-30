@@ -1,6 +1,7 @@
-* Overview
-  This code will allow you to grab link to from open mac applications
-  and insert them as hyperlinks at point in an org-mode document. 
+* Overview 
+  This code will allow you to grab the current link or
+  selection from an open mac applicationm and insert it as a hyperlink
+  at point in an org-mode document.
 
 *** Supported Application
 	The following applications are currently supported:
