@@ -1,0 +1,22 @@
+;-*-org-*-
+#+TITLE: org-mac-link-grabber
+
+* Overview
+  This code will allow you to grab link to from open mac applications
+  and insert them as hyperlinks at point in an org-mode document. 
+
+*** Supported Application
+	The following applications are currently supported:
+	- Firefox.app
+	- Mail.app
+	- Together.app
+
+* Installation
+  Add the org-mac-link-grabber/lisp directory to your load-path, and
+  then (require 'org-mac-link-grabber) in your .emacs.
+
+* Usage
+  Activate the grabber by typing *C-c g*. This will give you a menu in
+  the modeline allowing you to select an application. The current
+  selection in that application will be inserted at point as a
+  hyperlink in your org-mode document.
