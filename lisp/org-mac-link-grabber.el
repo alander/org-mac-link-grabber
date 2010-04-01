@@ -19,9 +19,10 @@
 ;; the code. Here is a brief overview of how the code interacts with
 ;; each application:
 ;;
-;; Firefox.app - Grab the url of the frontmost tab in the topmost window
-;; Together.app - Grab links to the selected items in the library list
+;; Finder.app - grab links to the selected files in the frontmost window
 ;; Mail.app - grab links to the selected messages in the message list
+;; Firefox.app - Grab the url of the frontmost tab in the frontmost window
+;; Together.app - Grab links to the selected items in the library list
 ;;
 ;; Installation:
 ;;
@@ -43,8 +44,10 @@
 
 (progn
   (define-key org-mode-map (kbd "C-c g") 
-	(define-prefix-command 'org-mac-grab-link-keymap nil "Grab links from [m]ail.app [f]irefox [t]ogether"))
+	(define-prefix-command 'org-mac-grab-link-keymap nil 
+	  "Grab links from [F]inder [m]ail.app [f]irefox [t]ogether"))
 
+  (define-key org-mac-grab-link-keymap "F" 'org-mac-finder-insert-selected)
   (define-key org-mac-grab-link-keymap "m" 'org-mac-message-insert-selected)
   (define-key org-mac-grab-link-keymap "f" 'org-mac-firefox-insert-frontmost-url)
   (define-key org-mac-grab-link-keymap "t" 'org-mac-together-item-get-selected)
@@ -112,7 +115,12 @@
 
 
 
+;;
+;;
 ;; Handle links from together.app
+;;
+;;
+
 (org-add-link-type "x-together-item" 'org-mac-together-item-open)
 
 (defun org-mac-together-item-open (uid)
@@ -123,14 +131,14 @@
   (do-applescript
 	  (concat
 	   "tell application \"Together\"\n"
-	"set theLinkList to {}\n"
-	"set theSelection to selected items\n"
-	"repeat with theItem in theSelection\n"
-		"set theLink to (get item link of theItem) & \"::split::\" & (get name of theItem) & \"\n\"\n"
-		"copy theLink to end of theLinkList\n"
-	"end repeat\n"
-	"return theLinkList as string\n"
-"end tell")))
+	   "	set theLinkList to {}\n"
+	   "	set theSelection to selected items\n"
+	   "	repeat with theItem in theSelection\n"
+	   "		set theLink to (get item link of theItem) & \"::split::\" & (get name of theItem) & \"\n\"\n"
+	   "		copy theLink to end of theLinkList\n"
+	   "	end repeat\n"
+	   "	return theLinkList as string\n"
+	   "end tell")))
 
 (defun org-mac-together-item-get-selected ()
   (interactive)
@@ -157,8 +165,51 @@
   (insert (org-mac-together-item-get-selected)))
 
 
+
+;;
+;;
+;; Handle links from Finder.app
+;;
+;;
 
+(defun as-get-selected-finder-items ()
+  (do-applescript
+	  (concat
+	   "tell application \"Finder\"\n"
+	   "	set theSelection to the selection\n"
+	   "	set links to {}\n"
+	   "	repeat with theItem in theSelection\n"
+	   "		set theLink to \"file://\" & (POSIX path of (theItem as string)) & \"::split::\" & (get the name of theItem) & \"\n\"\n"
+	   "		copy theLink to the end of links\n"
+	   "	end repeat\n"
+	   "	return links as string\n"
+	   "end tell\n")))
 
+(defun org-mac-finder-item-get-selected ()
+  (interactive)
+  (message "Applescript: Getting Finder items...")
+  (let* ((as-link-list (as-get-selected-finder-items))
+		 (link-list
+		  (mapcar
+		   (lambda (x) (if (string-match "\\`\"\\(.*\\)\"\\'" x) (setq x (match-string 1 x))) x)
+		   (split-string as-link-list "[\r\n]+")))
+		 split-link URL description orglink orglink-insert rtn orglink-list)
+	(while link-list
+      (setq split-link (split-string (pop link-list) "::split::"))
+      (setq URL (car split-link))
+      (setq description (cadr split-link))
+      (when (not (string= URL ""))
+		(setq orglink (org-make-link-string URL description))
+		(push orglink orglink-list)))
+    (setq rtn (mapconcat 'identity orglink-list "\n"))
+    (kill-new rtn)
+    rtn))
+
+(defun org-mac-finder-insert-selected ()
+  (interactive)
+  (insert (org-mac-finder-item-get-selected)))
+
+
 (provide 'org-mac-link-grabber)
 
 ;;; org-mac-link-grabber.el ends here
