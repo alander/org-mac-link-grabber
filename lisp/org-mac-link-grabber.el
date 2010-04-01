@@ -54,6 +54,32 @@
   (define-key org-mac-grab-link-keymap (kbd "C-g") 'keyboard-quit))
 
 
+(defun org-mac-paste-applescript-links (as-link-list)
+  "Paste in a list of links from an applescript handler. The
+   links are of the form <link>::split::<name>"
+  (let* ((link-list
+		  (mapcar
+		   (lambda (x) (if (string-match "\\`\"\\(.*\\)\"\\'" x) (setq x (match-string 1 x))) x)
+		   (split-string as-link-list "[\r\n]+")))
+		 split-link URL description orglink orglink-insert rtn orglink-list)
+	(while link-list
+      (setq split-link (split-string (pop link-list) "::split::"))
+      (setq URL (car split-link))
+      (setq description (cadr split-link))
+      (when (not (string= URL ""))
+		(setq orglink (org-make-link-string URL description))
+		(push orglink orglink-list)))
+    (setq rtn (mapconcat 'identity orglink-list "\n"))
+    (kill-new rtn)
+    rtn))
+
+
+
+(defun org-mac-together-item-get-selected ()
+  (interactive)
+  (message "Applescript: Getting Togther items...")
+  (org-mac-paste-applescript-links (as-get-selected-together-items)))
+
 
 
 
@@ -93,7 +119,9 @@
 					 "	set theResult to (get theUrl) & \"::split::\" & (get name of window 1)\n"
 					 "end tell\n"
 					 "activate application (frontmostApplication as text)\n"
-					 "return theResult\n"))))
+					 "set links to {}\n"
+					 "copy theResult to the end of links\n"
+					 "return links as string\n"))))
 	(car (split-string result "[\r\n]+" t))))
 
 (defun org-mac-firefox-get-frontmost-url ()
@@ -143,22 +171,7 @@
 (defun org-mac-together-item-get-selected ()
   (interactive)
   (message "Applescript: Getting Togther items...")
-  (let* ((as-link-list (as-get-selected-togther-items))
-		 (link-list
-		  (mapcar
-		   (lambda (x) (if (string-match "\\`\"\\(.*\\)\"\\'" x) (setq x (match-string 1 x))) x)
-		   (split-string as-link-list "[\r\n]+")))
-		 split-link URL description orglink orglink-insert rtn orglink-list)
-	(while link-list
-      (setq split-link (split-string (pop link-list) "::split::"))
-      (setq URL (car split-link))
-      (setq description (cadr split-link))
-      (when (not (string= URL ""))
-		(setq orglink (org-make-link-string URL description))
-		(push orglink orglink-list)))
-    (setq rtn (mapconcat 'identity orglink-list "\n"))
-    (kill-new rtn)
-    rtn))
+  (org-mac-paste-applescript-links (as-get-selected-together-items)))
 
 (defun org-mac-together-item-insert-selected ()
   (interactive)
@@ -188,22 +201,24 @@
 (defun org-mac-finder-item-get-selected ()
   (interactive)
   (message "Applescript: Getting Finder items...")
-  (let* ((as-link-list (as-get-selected-finder-items))
-		 (link-list
-		  (mapcar
-		   (lambda (x) (if (string-match "\\`\"\\(.*\\)\"\\'" x) (setq x (match-string 1 x))) x)
-		   (split-string as-link-list "[\r\n]+")))
-		 split-link URL description orglink orglink-insert rtn orglink-list)
-	(while link-list
-      (setq split-link (split-string (pop link-list) "::split::"))
-      (setq URL (car split-link))
-      (setq description (cadr split-link))
-      (when (not (string= URL ""))
-		(setq orglink (org-make-link-string URL description))
-		(push orglink orglink-list)))
-    (setq rtn (mapconcat 'identity orglink-list "\n"))
-    (kill-new rtn)
-    rtn))
+  (org-mac-paste-applescript-links (as-get-selected-finder-items)))
+
+  ;; (let* ((as-link-list (as-get-selected-finder-items))
+  ;; 		 (link-list
+  ;; 		  (mapcar
+  ;; 		   (lambda (x) (if (string-match "\\`\"\\(.*\\)\"\\'" x) (setq x (match-string 1 x))) x)
+  ;; 		   (split-string as-link-list "[\r\n]+")))
+  ;; 		 split-link URL description orglink orglink-insert rtn orglink-list)
+  ;; 	(while link-list
+  ;;     (setq split-link (split-string (pop link-list) "::split::"))
+  ;;     (setq URL (car split-link))
+  ;;     (setq description (cadr split-link))
+  ;;     (when (not (string= URL ""))
+  ;; 		(setq orglink (org-make-link-string URL description))
+  ;; 		(push orglink orglink-list)))
+  ;;   (setq rtn (mapconcat 'identity orglink-list "\n"))
+  ;;   (kill-new rtn)
+  ;;   rtn))
 
 (defun org-mac-finder-insert-selected ()
   (interactive)
