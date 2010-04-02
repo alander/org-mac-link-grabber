@@ -1,4 +1,3 @@
-
 ;;; org-mac-link-grabber.el --- Grab links and url from various mac
 ;;; application and insert them as links into org-mode documents
 ;;
@@ -24,15 +23,22 @@
 ;; Firefox.app - Grab the url of the frontmost tab in the frontmost window
 ;; Together.app - Grab links to the selected items in the library list
 ;;
+;;
 ;; Installation:
 ;;
-;; add ('require org-mac-link-grabber) to your .emacs.
+;; add ('require org-mac-link-grabber) to your .emacs, and optionally
+;; bind a key to activate the link grabber menu, like this:
+;;
+;; (add-hook 'org-mode-hook (lambda () 
+;;   (define-key org-mode-map (kbd "C-c g") 'omgl-grab-link)))
+;;
 ;;
 ;; Usage:
 ;;
-;; Type C-c g to activate the link grabber. This will present you with
-;; a menu to choose an application from which to grab a link. You may
-;; also type C-g to abort.
+;; Type C-c g (or whatever key you defined, as above), or type M-x
+;; omgl-grab-link RET to activate the link grabber. This will present
+;; you with a menu to choose an application from which to grab a link
+;; to insert at point. You may also type C-g to abort.
 ;;
 ;;
 ;;; Code:
@@ -70,34 +76,35 @@ applications and inserting them in org documents"
   :type 'boolean)
 
 
-;; Define key bindings. C-g is the prefix key to grab links.
-(let* ((descriptors `(("F" "inder" org-mac-finder-insert-selected ,org-mac-grab-Finder-app-p)
-					  ("m" "ail" org-mac-message-insert-selected ,org-mac-grab-Mail-app-p)
-					  ("f" "irefox" org-mac-firefox-insert-frontmost-url ,org-mac-grab-Firefox-app-p)
-					  ("t" "ogether" org-mac-together-insert-selected ,org-mac-grab-Together-app-p)))
-	   (menu-string (make-string 0 ?x)))
+(defun omgl-grab-link ()
+  "Prompt the user for an application to grab a link from, then go grab the link, and insert it at point"
+  (interactive)
+  (let* ((descriptors `(("F" "inder" org-mac-finder-insert-selected ,org-mac-grab-Finder-app-p)
+						("m" "ail" org-mac-message-insert-selected ,org-mac-grab-Mail-app-p)
+						("f" "irefox" org-mac-firefox-insert-frontmost-url ,org-mac-grab-Firefox-app-p)
+						("t" "ogether" org-mac-together-insert-selected ,org-mac-grab-Together-app-p)))
+		 (menu-string (make-string 0 ?x))
+		 input)
 
-  (mapc '(lambda (descriptor)
-		  "Create the menu string for the keymap"
-		  (when (elt descriptor 3)
+	;; Create the menu string for the keymap
+	(mapc '(lambda (descriptor)
+			(when (elt descriptor 3)
 			  (setf menu-string (concat menu-string "[" (elt descriptor 0) "]" (elt descriptor 1) " "))))
-		descriptors)
-  (setf menu-string (substring menu-string 0 -1)) ; Remove trailing space
+		  descriptors)
+	(setf (elt menu-string (- (length menu-string) 1)) ?:)
+
+	;; Prompt the user, and grab the link
+	(message menu-string)
+	(setq input (read-char-exclusive))
+	(mapc '(lambda (descriptor)
+			(let ((key (elt (elt descriptor 0) 0))
+				  (active (elt descriptor 3))
+				  (grab-function (elt descriptor 2)))
+			  (when (and active (eq input key))
+				(call-interactively grab-function))))
+		  descriptors)))
   
-  (define-key org-mode-map (kbd "C-c g")
-	(define-prefix-command 'org-mac-grab-link-keymap nil 
-	  menu-string))
 
-  (mapc '(lambda (descriptor)
-		  "Define keys to grab from various applications"
-		  (when (elt descriptor 3)
-			(define-key org-mac-grab-link-keymap (elt descriptor 0) (elt descriptor 2))))
-		descriptors)
-
-  ; And C-g to quit
-  (define-key org-mac-grab-link-keymap (kbd "C-g") 'keyboard-quit))
-
-  
 (defun org-mac-paste-applescript-links (as-link-list)
   "Paste in a list of links from an applescript handler. The
    links are of the form <link>::split::<name>"
@@ -118,15 +125,13 @@ applications and inserting them in org documents"
     rtn))
 
 
-
 (defun org-mac-together-item-get-selected ()
   (interactive)
   (message "Applescript: Getting Togther items...")
   (org-mac-paste-applescript-links (as-get-selected-together-items)))
 
-
-
 
+
 ;; Handle links from Firefox.app
 ;;
 ;; This code allows you to grab the current active url from the main
@@ -185,7 +190,6 @@ applications and inserting them in org documents"
   (interactive)
   (insert (org-mac-firefox-get-frontmost-url)))
 
-
 
 ;;
 ;;
@@ -220,7 +224,6 @@ applications and inserting them in org documents"
 (defun org-mac-together-insert-selected ()
   (interactive)
   (insert (org-mac-together-get-selected)))
-
 
 
 ;;
