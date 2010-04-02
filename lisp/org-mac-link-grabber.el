@@ -20,6 +20,7 @@
 ;;
 ;; Finder.app - grab links to the selected files in the frontmost window
 ;; Mail.app - grab links to the selected messages in the message list
+;; AddressBooks.app - Grab links to the selected addressbook cards
 ;; Firefox.app - Grab the url of the frontmost tab in the frontmost window
 ;; Together.app - Grab links to the selected items in the library list
 ;;
@@ -63,6 +64,12 @@ applications and inserting them in org documents"
   :group 'org-mac-link-grabber
   :type 'boolean)
 
+(defcustom org-mac-grab-Addressbook-app-p t
+  "Enable menu option [a]ddressbook to grab links from AddressBook.app"
+  :tag "Grab AddressBook.app links"
+  :group 'org-mac-link-grabber
+  :type 'boolean)
+
 (defcustom org-mac-grab-Firefox-app-p t
   "Enable menu option [f]irefox to grab links from Firefox.app"
   :tag "Grab Firefox.app links"
@@ -81,6 +88,7 @@ applications and inserting them in org documents"
   (interactive)
   (let* ((descriptors `(("F" "inder" org-mac-finder-insert-selected ,org-mac-grab-Finder-app-p)
 						("m" "ail" org-mac-message-insert-selected ,org-mac-grab-Mail-app-p)
+						("a" "ddressbook" org-mac-addressbook-insert-selected ,org-mac-grab-Addressbook-app-p)
 						("f" "irefox" org-mac-firefox-insert-frontmost-url ,org-mac-grab-Firefox-app-p)
 						("t" "ogether" org-mac-together-insert-selected ,org-mac-grab-Together-app-p)))
 		 (menu-string (make-string 0 ?x))
@@ -224,35 +232,75 @@ applications and inserting them in org documents"
 (defun org-mac-together-insert-selected ()
   (interactive)
   (insert (org-mac-together-get-selected)))
+
+;;
+;;
+;; Handle links from together.app
+;;
+;;
+
+(org-add-link-type "x-together-item" 'org-mac-together-item-open)
+
+(defun org-mac-together-item-open (uid)
+  "Open the given uid, which is a reference to an item in Together"
+  (shell-command (concat "open \"x-together-item:" uid "\"")))
+
+(defun as-get-selected-togther-items ()
+  (do-applescript
+	  (concat
+	   "tell application \"Together\"\n"
+	   "	set theLinkList to {}\n"
+	   "	set theSelection to selected items\n"
+	   "	repeat with theItem in theSelection\n"
+	   "		set theLink to (get item link of theItem) & \"::split::\" & (get name of theItem) & \"\n\"\n"
+	   "		copy theLink to end of theLinkList\n"
+	   "	end repeat\n"
+	   "	return theLinkList as string\n"
+	   "end tell")))
+
+(defun org-mac-together-get-selected ()
+  (interactive)
+  (message "Applescript: Getting Togther items...")
+  (org-mac-paste-applescript-links (as-get-selected-together-items)))
+
+(defun org-mac-together-insert-selected ()
+  (interactive)
+  (insert (org-mac-together-get-selected)))
 
 
 ;;
 ;;
-;; Handle links from Finder.app
+;; Handle links from AddressBook.app
 ;;
 ;;
 
-(defun as-get-selected-finder-items ()
+(org-add-link-type "addressbook" 'org-mac-together-item-open)
+
+(defun org-mac-together-item-open (uid)
+  "Open the given uid, which is a reference to an item in Together"
+  (shell-command (concat "open \"addressbook:" uid "\"")))
+
+(defun as-get-selected-addressbook-items ()
   (do-applescript
 	  (concat
-	   "tell application \"Finder\"\n"
+	   "tell application \"Address Book\"\n"
 	   "	set theSelection to the selection\n"
 	   "	set links to {}\n"
 	   "	repeat with theItem in theSelection\n"
-	   "		set theLink to \"file://\" & (POSIX path of (theItem as string)) & \"::split::\" & (get the name of theItem) & \"\n\"\n"
+	   "		set theLink to \"addressbook://\" & (the id of theItem) & \"::split::\" & (the name of theItem) & \"\n\"\n"
 	   "		copy theLink to the end of links\n"
 	   "	end repeat\n"
 	   "	return links as string\n"
 	   "end tell\n")))
 
-(defun org-mac-finder-item-get-selected ()
+(defun org-mac-addressbook-item-get-selected ()
   (interactive)
-  (message "Applescript: Getting Finder items...")
-  (org-mac-paste-applescript-links (as-get-selected-finder-items)))
+  (message "Applescript: Getting Address Book items...")
+  (org-mac-paste-applescript-links (as-get-selected-addressbook-items)))
 
-(defun org-mac-finder-insert-selected ()
+(defun org-mac-addressbook-insert-selected ()
   (interactive)
-  (insert (org-mac-finder-item-get-selected)))
+  (insert (org-mac-addressbook-item-get-selected)))
 
 
 (provide 'org-mac-link-grabber)
