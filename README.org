@@ -1,20 +1,34 @@
 * Overview 
-  This code will allow you to grab the current link or
-  selection from an open mac applicationm and insert it as a hyperlink
-  at point in an org-mode document.
+
+  This code will allow you to grab the current link or selection from
+  an open mac application and insert it as a hyperlink at point in an
+  org-mode document.
 
 *** Supported Application
+
 	The following applications are currently supported:
-	- Firefox.app
+	- Finder.app
 	- Mail.app
+	- Firefox.app
 	- Together.app
 
 * Installation
+  
   Add the org-mac-link-grabber/lisp directory to your load-path, and
-  then (require 'org-mac-link-grabber) in your .emacs.
+  then add 
 
-* Usage
-  Activate the grabber by typing *C-c g*. This will give you a menu in
-  the modeline allowing you to select an application. The current
-  selection in that application will be inserted at point as a
+  : (require 'org-mac-link-grabber) 
+
+  to your .emacs. You may also optionally bind a key to activate the
+  link grabber menu, like this:
+
+  : (add-hook 'org-mode-hook (lambda () 
+  :   (define-key org-mode-map (kbd "C-c g") 'omgl-grab-link)))
+
+* Usage 
+
+  Activate the grabber by typing *C-c g* (or whatever key you decided
+  to bind, as above), or type *M-x omgl-grab-link*. This will give you
+  a menu in the modeline allowing you to select an application. The
+  current selection in that application will be inserted at point as a
   hyperlink in your org-mode document.
