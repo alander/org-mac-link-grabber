@@ -250,23 +250,6 @@ applications and inserting them in org documents"
   (message "Applescript: Getting Finder items...")
   (org-mac-paste-applescript-links (as-get-selected-finder-items)))
 
-  ;; (let* ((as-link-list (as-get-selected-finder-items))
-  ;; 		 (link-list
-  ;; 		  (mapcar
-  ;; 		   (lambda (x) (if (string-match "\\`\"\\(.*\\)\"\\'" x) (setq x (match-string 1 x))) x)
-  ;; 		   (split-string as-link-list "[\r\n]+")))
-  ;; 		 split-link URL description orglink orglink-insert rtn orglink-list)
-  ;; 	(while link-list
-  ;;     (setq split-link (split-string (pop link-list) "::split::"))
-  ;;     (setq URL (car split-link))
-  ;;     (setq description (cadr split-link))
-  ;;     (when (not (string= URL ""))
-  ;; 		(setq orglink (org-make-link-string URL description))
-  ;; 		(push orglink orglink-list)))
-  ;;   (setq rtn (mapconcat 'identity orglink-list "\n"))
-  ;;   (kill-new rtn)
-  ;;   rtn))
-
 (defun org-mac-finder-insert-selected ()
   (interactive)
   (insert (org-mac-finder-item-get-selected)))
