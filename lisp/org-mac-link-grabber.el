@@ -39,21 +39,66 @@
 (require 'org)
 (require 'org-mac-message)
 
+(defgroup org-mac-link-grabber nil
+  "Options concerning grabbing links from external Mac
+applications and inserting them in org documents"
+  :tag "Org Mac link grabber"
+  :group 'org-link)
+
+(defcustom org-mac-grab-Finder.app-p t
+  "Enable menu option [F]inder to grab links from the Finder"
+  :tag "Grab Finder.app links"
+  :group 'org-mac-link-grabber
+  :type 'boolean)
+
+(defcustom org-mac-grab-Mail.app-p t
+  "Enable menu option [m]ail to grab links from Mail.app"
+  :tag "Grab Mail.app links"
+  :group 'org-mac-link-grabber
+  :type 'boolean)
+
+(defcustom org-mac-grab-Firefox.app-p t
+  "Enable menu option [f]irefox to grab links from Firefox.app"
+  :tag "Grab Firefox.app links"
+  :group 'org-mac-link-grabber
+  :type 'boolean)
+
+(defcustom org-mac-grab-Together.app-p nil
+  "Enable menu option [t]ogether to grab links from Together.app"
+  :tag "Grab Together.app links"
+  :group 'org-mac-link-grabber
+  :type 'boolean)
+
 
 ;; Define key bindings. C-g is the prefix key to grab links.
+(let* ((descriptors '(("F" "inder" org-mac-finder-insert-selected org-mac-grab-Finder.app-p)
+					  ("m" "ail" org-mac-message-insert-selected org-mac-grab-Mail.app-p)
+					  ("f" "irefox" org-mac-firefox-insert-frontmost-url org-mac-grab-Firefox.app-p)
+					  ("t" "ogether" org-mac-together-insert-selected org-mac-grab-Together.app-p)))
+	   (menu-string (make-string 0 ?x)))
 
-(progn
-  (define-key org-mode-map (kbd "C-c g") 
+  (mapc '(lambda (descriptor)
+		  "Create the menu string for the keymap"
+		  (when (elt descriptor 3)
+			(setf menu-string (concat menu-string "[" (elt descriptor 0) "]" (elt descriptor 1) " "))))
+		descriptors)
+  (setf menu-string (substring menu-string 0 -1)) ; Remove trailing space
+  
+  (define-key org-mode-map (kbd "C-c g")
 	(define-prefix-command 'org-mac-grab-link-keymap nil 
-	  "Grab links from [F]inder [m]ail.app [f]irefox [t]ogether"))
+	  menu-string))
 
-  (define-key org-mac-grab-link-keymap "F" 'org-mac-finder-insert-selected)
-  (define-key org-mac-grab-link-keymap "m" 'org-mac-message-insert-selected)
-  (define-key org-mac-grab-link-keymap "f" 'org-mac-firefox-insert-frontmost-url)
-  (define-key org-mac-grab-link-keymap "t" 'org-mac-together-item-get-selected)
+  (mapc '(lambda (descriptor)
+		  "Define keys to grab from various applications"
+		  (when (elt descriptor 3)
+			(define-key org-mac-grab-link-keymap (elt descriptor 0) (elt descriptor 2))))
+		descriptors)
+
+  ; And C-g to quit
   (define-key org-mac-grab-link-keymap (kbd "C-g") 'keyboard-quit))
 
 
+  
 (defun org-mac-paste-applescript-links (as-link-list)
   "Paste in a list of links from an applescript handler. The
    links are of the form <link>::split::<name>"
@@ -168,14 +213,14 @@
 	   "	return theLinkList as string\n"
 	   "end tell")))
 
-(defun org-mac-together-item-get-selected ()
+(defun org-mac-together-get-selected ()
   (interactive)
   (message "Applescript: Getting Togther items...")
   (org-mac-paste-applescript-links (as-get-selected-together-items)))
 
-(defun org-mac-together-item-insert-selected ()
+(defun org-mac-together-insert-selected ()
   (interactive)
-  (insert (org-mac-together-item-get-selected)))
+  (insert (org-mac-together-get-selected)))
 
 
 
