@@ -32,3 +32,9 @@
   you a menu in the modeline allowing you to select an application.
   The current selection in that application will be inserted at point
   as a hyperlink in your org-mode document.
+
+* Customizing
+
+  You may customize which applications appear in the grab menu by
+  customizing the group /org-mac-link-grabber/. Changes take effect
+  immediately.
