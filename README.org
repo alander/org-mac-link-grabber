@@ -28,7 +28,7 @@
 * Usage 
 
   Activate the grabber by typing *C-c g* (or whatever key you decided
-  to bind, as above), or type *M-x omgl-grab-link*. This will give you
-  a menu in the modeline allowing you to select an application. The
-  current selection in that application will be inserted at point as a
-  hyperlink in your org-mode document.
+  to bind, as above), or type *M-x omgl-grab-link RET*. This will give
+  you a menu in the modeline allowing you to select an application.
+  The current selection in that application will be inserted at point
+  as a hyperlink in your org-mode document.
