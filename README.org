@@ -9,6 +9,7 @@
 	The following applications are currently supported:
 	- Finder.app
 	- Mail.app
+	- Address Book.app
 	- Firefox.app
 	- Together.app
 
