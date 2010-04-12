@@ -133,12 +133,6 @@ applications and inserting them in org documents"
     rtn))
 
 
-(defun org-mac-together-item-get-selected ()
-  (interactive)
-  (message "Applescript: Getting Togther items...")
-  (org-mac-paste-applescript-links (as-get-selected-together-items)))
-
-
 
 ;; Handle links from Firefox.app
 ;;
@@ -233,39 +227,34 @@ applications and inserting them in org documents"
   (interactive)
   (insert (org-mac-together-get-selected)))
 
+
 ;;
 ;;
-;; Handle links from together.app
+;; Handle links from Finder.app
 ;;
 ;;
 
-(org-add-link-type "x-together-item" 'org-mac-together-item-open)
-
-(defun org-mac-together-item-open (uid)
-  "Open the given uid, which is a reference to an item in Together"
-  (shell-command (concat "open \"x-together-item:" uid "\"")))
-
-(defun as-get-selected-togther-items ()
+(defun as-get-selected-finder-items ()
   (do-applescript
-	  (concat
-	   "tell application \"Together\"\n"
-	   "	set theLinkList to {}\n"
-	   "	set theSelection to selected items\n"
-	   "	repeat with theItem in theSelection\n"
-	   "		set theLink to (get item link of theItem) & \"::split::\" & (get name of theItem) & \"\n\"\n"
-	   "		copy theLink to end of theLinkList\n"
-	   "	end repeat\n"
-	   "	return theLinkList as string\n"
-	   "end tell")))
+(concat
+"tell application \"Finder\"\n"
+" set theSelection to the selection\n"
+" set links to {}\n"
+" repeat with theItem in theSelection\n"
+" set theLink to \"file://\" & (POSIX path of (theItem as string)) & \"::split::\" & (get the name of theItem) & \"\n\"\n"
+" copy theLink to the end of links\n"
+" end repeat\n"
+" return links as string\n"
+"end tell\n")))
 
-(defun org-mac-together-get-selected ()
+(defun org-mac-finder-item-get-selected ()
   (interactive)
-  (message "Applescript: Getting Togther items...")
-  (org-mac-paste-applescript-links (as-get-selected-together-items)))
+  (message "Applescript: Getting Finder items...")
+  (org-mac-paste-applescript-links (as-get-selected-finder-items)))
 
-(defun org-mac-together-insert-selected ()
+(defun org-mac-finder-insert-selected ()
   (interactive)
-  (insert (org-mac-together-get-selected)))
+  (insert (org-mac-finder-item-get-selected)))
 
 
 ;;
