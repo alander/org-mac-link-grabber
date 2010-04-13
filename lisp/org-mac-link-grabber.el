@@ -76,6 +76,12 @@ applications and inserting them in org documents"
   :group 'org-mac-link-grabber
   :type 'boolean)
 
+(defcustom org-mac-grab-Chrome-app-p t
+  "Enable menu option [f]irefox to grab links from Google Chrome.app"
+  :tag "Grab Google Chrome.app links"
+  :group 'org-mac-link-grabber
+  :type 'boolean)
+
 (defcustom org-mac-grab-Together-app-p nil
   "Enable menu option [t]ogether to grab links from Together.app"
   :tag "Grab Together.app links"
@@ -90,6 +96,7 @@ applications and inserting them in org documents"
 						("m" "ail" org-mac-message-insert-selected ,org-mac-grab-Mail-app-p)
 						("a" "ddressbook" org-mac-addressbook-insert-selected ,org-mac-grab-Addressbook-app-p)
 						("f" "irefox" org-mac-firefox-insert-frontmost-url ,org-mac-grab-Firefox-app-p)
+						("c" "hrome" org-mac-chrome-insert-frontmost-url ,org-mac-grab-Chrome-app-p)
 						("t" "ogether" org-mac-together-insert-selected ,org-mac-grab-Together-app-p)))
 		 (menu-string (make-string 0 ?x))
 		 input)
@@ -193,6 +200,52 @@ applications and inserting them in org documents"
   (insert (org-mac-firefox-get-frontmost-url)))
 
 
+;; Handle links from Google Chrome.app
+;; Grab the frontmost url from Google Chrome. Same limitations are
+;; Firefox because Chrome doesn't publish an Applescript dictionary
+
+(defun as-mac-chrome-get-frontmost-url ()
+  (let ((result (do-applescript
+					(concat
+					 "set oldClipboard to the clipboard\n"
+					 "set frontmostApplication to path to frontmost application\n"
+					 "tell application \"Google Chrome\"\n"
+					 "	activate\n"
+					 "	delay 0.15\n"
+					 "	tell application \"System Events\"\n"
+					 "		keystroke \"l\" using command down\n"
+					 "		keystroke \"c\" using command down\n"
+					 "	end tell\n"
+					 "	delay 0.15\n"
+					 "	set theUrl to the clipboard\n"
+					 "	set the clipboard to oldClipboard\n"
+					 "	set theResult to (get theUrl) & \"::split::\" & (get name of window 1)\n"
+					 "end tell\n"
+					 "activate application (frontmostApplication as text)\n"
+					 "set links to {}\n"
+					 "copy theResult to the end of links\n"
+					 "return links as string\n"))))
+	(car (split-string result "[\r\n]+" t))))
+
+(defun org-mac-chrome-get-frontmost-url ()
+  (interactive)
+  (message "Applescript: Getting Chrome url...")
+  (let* ((url-and-title (as-mac-chrome-get-frontmost-url))
+		 (split-link (split-string url-and-title "::split::"))
+		 (URL (car split-link))
+		 (description (cadr split-link))
+		 (org-link))
+	(when (not (string= URL ""))
+	  (setq org-link (org-make-link-string URL description)))
+  (kill-new org-link)
+  org-link))
+
+(defun org-mac-chrome-insert-frontmost-url ()
+  (interactive)
+  (insert (org-mac-chrome-get-frontmost-url)))
+
+
+
 ;;
 ;;
 ;; Handle links from together.app
