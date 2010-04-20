@@ -70,6 +70,12 @@ applications and inserting them in org documents"
   :group 'org-mac-link-grabber
   :type 'boolean)
 
+(defcustom org-mac-grab-Safari-app-p t
+  "Enable menu option [s]afari to grab links from Safari.app"
+  :tag "Grab Safari.app links"
+  :group 'org-mac-link-grabber
+  :type 'boolean)
+
 (defcustom org-mac-grab-Firefox-app-p t
   "Enable menu option [f]irefox to grab links from Firefox.app"
   :tag "Grab Firefox.app links"
@@ -95,6 +101,7 @@ applications and inserting them in org documents"
   (let* ((descriptors `(("F" "inder" org-mac-finder-insert-selected ,org-mac-grab-Finder-app-p)
 						("m" "ail" org-mac-message-insert-selected ,org-mac-grab-Mail-app-p)
 						("a" "ddressbook" org-mac-addressbook-insert-selected ,org-mac-grab-Addressbook-app-p)
+						("s" "afari" org-mac-safari-insert-frontmost-url ,org-mac-grab-Safari-app-p)
 						("f" "irefox" org-mac-firefox-insert-frontmost-url ,org-mac-grab-Firefox-app-p)
 						("c" "hrome" org-mac-chrome-insert-frontmost-url ,org-mac-grab-Chrome-app-p)
 						("t" "ogether" org-mac-together-insert-selected ,org-mac-grab-Together-app-p)))
@@ -245,7 +252,37 @@ applications and inserting them in org documents"
   (insert (org-mac-chrome-get-frontmost-url)))
 
 
+;; Handle links from Safari.app
+;; Grab the frontmost url from Safari.
 
+(defun as-mac-safari-get-frontmost-url ()
+  (let ((result (do-applescript
+					(concat
+					 "tell application \"Safari\"\n"
+					 "	set theUrl to URL of document 1\n"
+					 "	set theName to the name of the document 1\n"
+					 "	return theUrl & \"::split::\" & theName & \"\n\"\n"
+					 "end tell\n"))))
+	(car (split-string result "[\r\n]+" t))))
+	
+(defun org-mac-safari-get-frontmost-url ()
+  (interactive)
+  (message "Applescript: Getting Safari url...")
+  (let* ((url-and-title (as-mac-safari-get-frontmost-url))
+		 (split-link (split-string url-and-title "::split::"))
+		 (URL (car split-link))
+		 (description (cadr split-link))
+		 (org-link))
+	(when (not (string= URL ""))
+	  (setq org-link (org-make-link-string URL description)))
+  (kill-new org-link)
+  org-link))
+
+(defun org-mac-safari-insert-frontmost-url ()
+  (interactive)
+  (insert (org-mac-safari-get-frontmost-url)))
+		
+
 ;;
 ;;
 ;; Handle links from together.app
