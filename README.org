@@ -4,7 +4,7 @@
   an open mac application and insert it as a hyperlink at point in an
   org-mode document.
 
-*** Supported Application
+*** Supported Applications
 
 	The following applications are currently supported:
 	- Finder.app
