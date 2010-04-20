@@ -10,7 +10,9 @@
 	- Finder.app
 	- Mail.app
 	- Address Book.app
+	- Safari.app
 	- Firefox.app
+	- Google Chrome.app
 	- Together.app
 
 * Installation
