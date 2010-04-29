@@ -295,7 +295,7 @@ applications and inserting them in org documents"
   "Open the given uid, which is a reference to an item in Together"
   (shell-command (concat "open \"x-together-item:" uid "\"")))
 
-(defun as-get-selected-togther-items ()
+(defun as-get-selected-together-items ()
   (do-applescript
 	  (concat
 	   "tell application \"Together\"\n"
