@@ -1,9 +1,25 @@
 ;;; org-mac-link-grabber.el --- Grab links and url from various mac
 ;;; application and insert them as links into org-mode documents
 ;;
-;; Copyright (c) 2010 Anthony Lander
+;; Copyright (c) 2010 Free Software Foundation, Inc.
 ;; 
 ;; Author: Anthony Lander <anthony.lander@gmail.com>
+;; Version: 1.0
+;; Keywords: org, mac, hyperlink
+;;
+;; This program is free software; you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation; either version 3, or (at your option)
+;; any later version.
+;;
+;; This program is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+;;
+;; You should have received a copy of the GNU General Public License
+;; along with this program; if not, write to the Free Software
+;; Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 ;;
 ;;; Commentary:
 ;;
@@ -11,8 +27,9 @@
 ;; the frontmost url in various mac appliations, and insert them as
 ;; hyperlinks into the current org-mode document at point.
 ;;
-;; This code is heavily based on org-mac-message.el written by John
-;; Weigley and Christopher Suckling.
+;; This code is heavily based on, and indeed requires,
+;; org-mac-message.el written by John Weigley and Christopher
+;; Suckling.
 ;;
 ;; Detailed comments for each application interface are inlined with
 ;; the code. Here is a brief overview of how the code interacts with
@@ -20,8 +37,10 @@
 ;;
 ;; Finder.app - grab links to the selected files in the frontmost window
 ;; Mail.app - grab links to the selected messages in the message list
-;; AddressBooks.app - Grab links to the selected addressbook cards
+;; AddressBook.app - Grab links to the selected addressbook Cards
 ;; Firefox.app - Grab the url of the frontmost tab in the frontmost window
+;; Safari.app - Grab the url of the frontmost tab in the frontmost window
+;; Google Chrome.app - Grab the url of the frontmost tab in the frontmost window
 ;; Together.app - Grab links to the selected items in the library list
 ;;
 ;;
@@ -31,18 +50,25 @@
 ;; bind a key to activate the link grabber menu, like this:
 ;;
 ;; (add-hook 'org-mode-hook (lambda () 
-;;   (define-key org-mode-map (kbd "C-c g") 'omgl-grab-link)))
+;;   (define-key org-mode-map (kbd "C-c g") 'omlg-grab-link)))
 ;;
 ;;
 ;; Usage:
 ;;
 ;; Type C-c g (or whatever key you defined, as above), or type M-x
-;; omgl-grab-link RET to activate the link grabber. This will present
+;; omlg-grab-link RET to activate the link grabber. This will present
 ;; you with a menu to choose an application from which to grab a link
 ;; to insert at point. You may also type C-g to abort.
 ;;
+;; Customizing:
+;;
+;; You may customize which applications appear in the grab menu by
+;; customizing the group org-mac-link-grabber. Changes take effect
+;; immediately.
+;;
 ;;
 ;;; Code:
+
 (require 'org)
 (require 'org-mac-message)
 
@@ -95,7 +121,7 @@ applications and inserting them in org documents"
   :type 'boolean)
 
 
-(defun omgl-grab-link ()
+(defun omlg-grab-link ()
   "Prompt the user for an application to grab a link from, then go grab the link, and insert it at point"
   (interactive)
   (let* ((descriptors `(("F" "inder" org-mac-finder-insert-selected ,org-mac-grab-Finder-app-p)
@@ -126,6 +152,8 @@ applications and inserting them in org documents"
 				(call-interactively grab-function))))
 		  descriptors)))
   
+(defalias 'omlg-grab-link 'omlg-grab-link
+  "Renamed, and this alias will be obsolete next revision.")
 
 (defun org-mac-paste-applescript-links (as-link-list)
   "Paste in a list of links from an applescript handler. The
@@ -162,9 +190,6 @@ applications and inserting them in org documents"
 ;; from other open tabs, and further, if there is more than one window
 ;; open, it is not clear which one will be used (though emperically it
 ;; seems that it is always the last active window).
-;;
-;; This code is heavily based on org-mac-message.el written by John
-;; Weigley and Christopher Suckling.
 
 (defun as-mac-firefox-get-frontmost-url ()
   (let ((result (do-applescript
