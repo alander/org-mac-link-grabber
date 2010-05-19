@@ -26,12 +26,12 @@
   link grabber menu, like this:
 
   : (add-hook 'org-mode-hook (lambda () 
-  :   (define-key org-mode-map (kbd "C-c g") 'omgl-grab-link)))
+  :   (define-key org-mode-map (kbd "C-c g") 'omlg-grab-link)))
 
 * Usage 
 
   Activate the grabber by typing *C-c g* (or whatever key you decided
-  to bind, as above), or type *M-x omgl-grab-link RET*. This will give
+  to bind, as above), or type *M-x omlg-grab-link RET*. This will give
   you a menu in the modeline allowing you to select an application.
   The current selection in that application will be inserted at point
   as a hyperlink in your org-mode document.
